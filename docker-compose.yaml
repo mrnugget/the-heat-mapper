@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+  prometheus:
+    image: ajeetraina/prometheus-armv7
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./prometheus:/etc/prometheus
+      - prometheus:/prometheus
+    command:
+      - "-config.file=/etc/prometheus/prometheus.yml"
+    expose:
+      - 9090
+    ports:
+      - "9090:9090"
+    links:
+      - mqttgateway:mqttgateway
+
+  grafana:
+    image: grafana/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=collabnix
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - grafana:/var/lib/grafana 
+    links:
+      - prometheus:prometheus
+    ports:
+      - "3000:3000"
+
+  mqttgateway:
+    image: mqttgateway/mqttgateway
+    command: '--mqtt.broker-address="tcp://host.docker.internal:1883"'
+    expose:
+      - 9337
+    ports:
+      - "9337:9337"
+    extra_hosts:
+      - "host.docker.internal:host-gateway" 
+
+volumes:
+  grafana:
+  prometheus:
