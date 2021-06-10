@@ -20,3 +20,20 @@ Run:
 ```
 python3 dht22.py
 ```
+
+### gomijia2
+
+Config: `gomijia2.conf`
+
+```
+sudo cp gomijia2.service /etc/systemd/system/
+sudo systemctl enable gomijia2
+sudo systemctl start gomijia2
+```
+
+### prometheus & grafana & mqttgateway
+
+```
+docker-compose up
+```
+

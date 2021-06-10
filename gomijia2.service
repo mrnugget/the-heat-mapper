@@ -1,0 +1,11 @@
+[Unit]
+Description=gomijia2
+Documentation=https://github.com/mrnugget/gomijia2
+After=network-online.target
+
+[Service]
+Restart=on-failure
+ExecStart=/home/pi/code/go/bin/gomijia2 --config_file=/home/pi/the-heat-mapper/gomijia2.conf
+
+[Install]
+WantedBy=multi-user.target
