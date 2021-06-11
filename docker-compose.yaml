@@ -15,6 +15,25 @@ services:
       - "9090:9090"
     links:
       - mqttgateway:mqttgateway
+      - node-exporter:node-exporter
+    depends_on:
+      - mqttgateway
+      - node-exporter
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.ignored-mount-points="^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)"'
+      - '--collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'
 
   grafana:
     image: grafana/grafana
@@ -28,6 +47,8 @@ services:
       - prometheus:prometheus
     ports:
       - "3000:3000"
+    depends_on:
+      - prometheus
 
   mqttgateway:
     image: mqttgateway/mqttgateway
