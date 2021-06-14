@@ -4,7 +4,11 @@ Documentation=https://github.com/mrnugget/gomijia2
 After=network-online.target
 
 [Service]
-Restart=on-failure
+# Restart it every 24 hours, becuase I noticed some sensors stop reporting
+# data. After restarting it works though.
+Restart=always
+RuntimeMaxSec=86400
+
 ExecStart=/home/pi/code/go/bin/gomijia2 --config_file=/home/pi/the-heat-mapper/gomijia2.conf
 
 [Install]
