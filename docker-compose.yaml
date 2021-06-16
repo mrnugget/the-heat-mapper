@@ -1,6 +1,7 @@
 version: "3.9"
 services:
   prometheus:
+    restart: always
     image: ajeetraina/prometheus-armv7
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -21,6 +22,7 @@ services:
       - node-exporter
 
   node-exporter:
+    restart: always
     image: prom/node-exporter:latest
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -36,6 +38,7 @@ services:
       - '--collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'
 
   grafana:
+    restart: always
     image: grafana/grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=collabnix
@@ -51,6 +54,7 @@ services:
       - prometheus
 
   mqttgateway:
+    restart: always
     image: mqttgateway/mqttgateway
     command: '--mqtt.broker-address="tcp://host.docker.internal:1883"'
     expose:
