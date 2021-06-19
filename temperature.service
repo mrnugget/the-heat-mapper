@@ -1,0 +1,12 @@
+[Unit]
+Description=MiTemperature2
+Documentation=https://github.com/mrnugget/MiTemperature2
+After=bluetooth.target
+
+[Service]
+Restart=always
+
+ExecStart=/home/pi/MiTemperature2/LYWSD03MMC.py --atc --devicelistfile /home/pi/devices.ini -odl --mqttconfigfile /home/pi/mqtt.ini
+
+[Install]
+WantedBy=multi-user.target
