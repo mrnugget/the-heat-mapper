@@ -1,11 +1,15 @@
 [Unit]
 Description=MiTemperature2
 Documentation=https://github.com/mrnugget/MiTemperature2
-After=bluetooth.target
+
+# see: https://stackoverflow.com/questions/35805354/systemd-start-service-at-boot-time-after-network-is-really-up-for-wol-purpose/54300998#54300998
+After=systemd-networkd-wait-online.service
+Wants=systemd-networkd-wait-online.service
 
 [Service]
 Restart=always
 
+ExecStartPre=/bin/sh -c 'until ping -c1 google.com; do sleep 1; done;'
 ExecStart=/home/pi/MiTemperature2/LYWSD03MMC.py --atc --devicelistfile /home/pi/devices.ini -odl --mqttconfigfile /home/pi/mqtt.ini
 
 [Install]
