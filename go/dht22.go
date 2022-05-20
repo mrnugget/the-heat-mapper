@@ -16,7 +16,7 @@ func main() {
 	// Note: "boost GPIO performance" parameter is not work anymore from some
 	// specific Go release. Never put true value here.
 	temperature, humidity, retried, err :=
-		dht.ReadDHTxxWithRetry(dht.DHT22, 12, false, 10)
+		dht.ReadDHTxxWithRetry(dht.DHT22, "", 12, false, 10)
 	if err != nil {
 		log.Fatal(err)
 	}
