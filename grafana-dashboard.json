@@ -257,11 +257,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "filterable": false
-          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -271,8 +266,12 @@
                 "value": null
               },
               {
+                "color": "#EAB839",
+                "value": 30
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 60
               }
             ]
           },
@@ -288,21 +287,34 @@
       },
       "id": 8,
       "options": {
-        "showHeader": true
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
       },
       "pluginVersion": "8.0.0",
       "targets": [
         {
           "exemplar": true,
           "expr": "time() - mqtt_temperature_last_pushed_timestamp",
-          "format": "table",
+          "format": "time_series",
+          "instant": true,
           "interval": "",
           "legendFormat": "{{node}}",
           "refId": "A"
         }
       ],
       "title": "Last Pushed",
-      "type": "table"
+      "type": "stat"
     }
   ],
   "schemaVersion": 30,
@@ -319,5 +331,5 @@
   "timezone": "",
   "title": "Temperature",
   "uid": "fJ8XA3gRz",
-  "version": 5
+  "version": 6
 }
