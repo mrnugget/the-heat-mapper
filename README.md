@@ -33,6 +33,7 @@ sudo systemctl start gomijia2
 
 ### prometheus & grafana & mqttgateway
 
+Make sure .env contains the env vars used by unpoller
 ```
 docker-compose up
 ```

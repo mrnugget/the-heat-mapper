@@ -18,3 +18,8 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
     - targets: [ 'node-exporter:9100', 'kinakuta.local:9100', 'tinybox.local:9100']
+
+  - job_name: 'unifipoller'
+    scrape_interval: 30s
+    static_configs:
+    - targets: ['unpoller:9130']

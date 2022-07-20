@@ -19,9 +19,11 @@ services:
     links:
       - mqttgateway:mqttgateway
       - node-exporter:node-exporter
+      - unpoller:unpoller
     depends_on:
       - mqttgateway
       - node-exporter
+      - unpoller
 
   node-exporter:
     restart: always
@@ -44,6 +46,7 @@ services:
     image: grafana/grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=collabnix
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,natel-discrete-panel,grafana-piechart-panel
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -65,6 +68,28 @@ services:
       - "9337:9337"
     extra_hosts:
       - "host.docker.internal:host-gateway" 
+
+  unpoller:
+    image: golift/unifi-poller:latest
+    restart: unless-stopped
+    ports:
+      - '9130:9130'
+    container_name: unpoller
+    environment:
+      - UP_INFLUXDB_DISABLE=true
+      - UP_POLLER_DEBUG=false
+      - UP_UNIFI_DYNAMIC=false
+      - UP_PROMETHEUS_HTTP_LISTEN=0.0.0.0:9130
+      - UP_PROMETHEUS_NAMESPACE=unifipoller
+      - UP_UNIFI_CONTROLLER_0_SAVE_ALARMS=true
+      - UP_UNIFI_CONTROLLER_0_SAVE_ANOMALIES=true
+      - UP_UNIFI_CONTROLLER_0_SAVE_DPI=true
+      - UP_UNIFI_CONTROLLER_0_SAVE_EVENTS=true
+      - UP_UNIFI_CONTROLLER_0_SAVE_IDS=true
+      - UP_UNIFI_CONTROLLER_0_SAVE_SITES=true
+      - UP_UNIFI_CONTROLLER_0_URL=${UNIFI_URL}
+      - UP_UNIFI_CONTROLLER_0_USER=${UNIFI_USER}
+      - UP_UNIFI_CONTROLLER_0_PASS=${UNIFI_PASS}
 
 volumes:
   grafana:
