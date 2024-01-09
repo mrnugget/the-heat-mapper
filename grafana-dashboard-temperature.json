@@ -73,7 +73,7 @@
       },
       "gridPos": {
         "h": 15,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 0
       },
@@ -84,7 +84,7 @@
             "last"
           ],
           "displayMode": "table",
-          "placement": "right"
+          "placement": "bottom"
         },
         "tooltip": {
           "mode": "single"
@@ -156,10 +156,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 15,
-        "w": 12,
-        "x": 12,
-        "y": 0
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 15
       },
       "id": 4,
       "options": {
@@ -168,7 +168,7 @@
             "last"
           ],
           "displayMode": "table",
-          "placement": "right"
+          "placement": "bottom"
         },
         "tooltip": {
           "mode": "single"
@@ -221,7 +221,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 15
+        "y": 29
       },
       "id": 6,
       "options": {
@@ -283,7 +283,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 15
+        "y": 29
       },
       "id": 8,
       "options": {
@@ -317,6 +317,7 @@
       "type": "stat"
     }
   ],
+  "refresh": "10s",
   "schemaVersion": 30,
   "style": "dark",
   "tags": [],
@@ -328,8 +329,8 @@
     "to": "now"
   },
   "timepicker": {},
-  "timezone": "",
+  "timezone": "Europe/Berlin",
   "title": "Temperature",
   "uid": "fJ8XA3gRz",
-  "version": 6
+  "version": 11
 }
