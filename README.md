@@ -23,7 +23,16 @@ On this machine:
     UNIFI_URL=https://192.168.1.10:8443
     ```
 
-2. Run: `docker-compose up -d`
+2. Install and run `mosquitto` (mqtt server):
+
+    ```
+    sudo apt install mosquitto mosquitto-clients
+    ```
+
+    See here for more details: https://pimylifeup.com/raspberry-pi-mosquitto-mqtt-server/
+
+3. Run: `docker-compose up -d`
+
 
 ## Raspberry Pi Zero - `tinybox`
 
@@ -79,4 +88,23 @@ sudo systemctl daemon-reload
 sudo systemctl enable temperature.service
 sudo systemctl start temperature.service
 sudo systemctl status temperature.service
+```
+
+## Cheatsheet
+
+Check whether `tinybox` sends data via mqtt to `blackbox`.
+
+On `blackbox`, run:
+
+```
+$ mosquitto_sub -h localhost -t "#" -v 
+prometheus/job/tinybox/node/livingroom/temperature 19.7
+prometheus/job/tinybox/node/livingroom/humidity 23
+prometheus/job/tinybox/node/livingroom/battery 21
+prometheus/job/tinybox/node/livingroom {"temperature": 19.7, "humidity": 23, "voltage": 2.397, "calibratedHumidity": 23, "battery": 21, "timestamp": 1704807608, "sensor": "LivingRoom", "rssi": -69, "receiver": "tinybox"}
+prometheus/job/tinybox/node/bathroom/temperature 20.3
+prometheus/job/tinybox/node/bathroom/humidity 34
+prometheus/job/tinybox/node/bathroom/battery 30
+prometheus/job/tinybox/node/bathroom {"temperature": 20.3, "humidity": 34, "voltage": 2.478, "calibratedHumidity": 34, "battery": 30, "timestamp": 1704807609, "sensor": "Bathroom", "rssi": -82, "receiver": "tinybox"}
+[...]
 ```
