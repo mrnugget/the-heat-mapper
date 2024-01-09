@@ -1,8 +1,9 @@
 # the-heat-mapper
 
-Just a collection of stuff I need for collecting some temperature/humidity readings on a Raspberry Pi 4
 
 ## Raspberry Pi 4 - `blackbox`
+
+This machine acts as the server and stores data and hosts services.
 
 On this machine:
 
@@ -21,34 +22,61 @@ On this machine:
     UNIFI_PASS=<PW>
     UNIFI_URL=https://192.168.1.10:8443
     ```
+
 2. Run: `docker-compose up -d`
 
-### `dht22.py`
+## Raspberry Pi Zero - `tinybox`
 
-Reads temp/humidity from DHT22 connected on pin = 12.
+This RPi Zero acts as a "satellite".
 
-Requirements:
+It receives temperature/humidity signals via Bluetooth and forwards
+to `blackbox`.
 
-```
-sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install python3-pip
-sudo python3 -m pip install --upgrade pip setuptools wheel
-sudo pip3 install Adafruit_DHT
-```
+### Run
 
-Run:
+1. Copy the following three files over to `tinybox`:
 
-```
-python3 dht22.py
-```
+- `devices.ini`
+- `mqtt.ini`
+- `temperature.service`
 
-### gomijia2
-
-Config: `gomijia2.conf`
-
-```
-sudo cp gomijia2.service /etc/systemd/system/
-sudo systemctl enable gomijia2
-sudo systemctl start gomijia2
+```bash
+scp devices.ini pi@tinybox:/home/pi/devices.ini
+scp mqtt.ini pi@tinybox:/home/pi/mqtt.ini
+scp temperature.service pi@tinybox:/home/pi/temperature.service
 ```
 
+Or clone them over
+
+2. Install dependencies and enable bluetooth stuff:
+
+
+```bash
+sudo apt install tmux git python3 bluez python3-pip bluetooth libbluetooth-dev
+sudo pip3 install bluepy requests pybluez paho-mqtt
+sudo setcap cap_net_raw,cap_net_admin+eip $(eval readlink -f `which python3`)
+```
+
+3. Clone fork of `MiTemperature2`:
+
+```bash
+git clone git@github.com:mrnugget/MiTemperature2.git
+cd MiTemperature2
+git checkout mrn/simplify
+```
+
+Make sure it works:
+
+```bash
+sudo /home/pi/MiTemperature2/LYWSD03MMC.py --atc --devicelistfile /home/pi/devices.ini -odl --mqttconfigfile /home/pi/mqtt.ini
+```
+
+4. Enable service systemw-wide:
+
+```bash
+sudo cp temperature.service /etc/systemd/system/temperature.service
+sudo systemctl daemon-reload
+sudo systemctl enable temperature.service
+sudo systemctl start temperature.service
+sudo systemctl status temperature.service
+```
