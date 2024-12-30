@@ -31,7 +31,16 @@ On this machine:
 
     See here for more details: https://pimylifeup.com/raspberry-pi-mosquitto-mqtt-server/
 
-3. Run: `docker-compose up -d`
+3. Edit mosquitto server:
+
+    ```/etc/mosquitto/mosquitto.conf
+    listener 1883
+    allow_anonymous true
+    ```
+
+4. Restart mosquitto: `sudo systemctl restart mosquitto`
+
+5. Run: `docker-compose up -d`
 
 
 ## Raspberry Pi Zero - `tinybox`
