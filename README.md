@@ -1,5 +1,49 @@
 # the-heat-mapper
 
+## Architecture
+
+```
+┌─────────────────────┐
+│  Bluetooth Sensors  │  (Xiaomi LYWSD03MMC with ATC firmware)
+│  around the house   │
+└─────────┬───────────┘
+          │ Bluetooth LE advertisements
+          ▼
+┌─────────────────────┐
+│  tinybox            │  Raspberry Pi Zero
+│  ┌────────────────┐ │
+│  │ LYWSD03MMC.py  │ │  Receives BLE, publishes to MQTT
+│  │ (temperature   │ │
+│  │  service)      │ │
+│  └───────┬────────┘ │
+└──────────┼──────────┘
+           │ MQTT publish to blackbox:1883
+           ▼
+┌──────────────────────────────────────────────────┐
+│  blackbox                      Raspberry Pi 4    │
+│  ┌─────────────┐                                 │
+│  │ mosquitto   │  MQTT broker (host service)     │
+│  └──────┬──────┘                                 │
+│         │ localhost:1883                         │
+│         ▼                                        │
+│  ┌─────────────┐                                 │
+│  │ mqttgateway │  Subscribes to MQTT topics,     │
+│  │ (container) │  exposes Prometheus metrics     │
+│  └──────┬──────┘  on :9337                       │
+│         │                                        │
+│         ▼                                        │
+│  ┌─────────────┐                                 │
+│  │ prometheus  │  Scrapes mqttgateway:9337       │
+│  │ (container) │  Stores time-series data        │
+│  └──────┬──────┘                                 │
+│         │                                        │
+│         ▼                                        │
+│  ┌─────────────┐                                 │
+│  │ grafana     │  Visualizes data from           │
+│  │ (container) │  Prometheus on :3000            │
+│  └─────────────┘                                 │
+└──────────────────────────────────────────────────┘
+```
 
 ## Raspberry Pi 4 - `blackbox`
 
@@ -117,3 +161,102 @@ prometheus/job/tinybox/node/bathroom/battery 30
 prometheus/job/tinybox/node/bathroom {"temperature": 20.3, "humidity": 34, "voltage": 2.478, "calibratedHumidity": 34, "battery": 30, "timestamp": 1704807609, "sensor": "Bathroom", "rssi": -82, "receiver": "tinybox"}
 [...]
 ```
+
+## Troubleshooting
+
+If Grafana stops showing temperature data, debug each stage of the pipeline:
+
+### 1. Check if tinybox is receiving Bluetooth data
+
+On `tinybox`:
+
+```bash
+sudo journalctl -u temperature.service --since '10 minutes ago' --no-pager | tail -20
+```
+
+You should see lines like:
+```
+measurement. name=Kitchen, mac=A4:C1:38:54:F7:59, temperature=21.1, humidity=35, battery=79%, rssi=-57dbm
+```
+
+If no output: the Bluetooth service may need restarting:
+```bash
+sudo systemctl restart temperature.service
+```
+
+### 2. Check if MQTT messages arrive at blackbox
+
+On `blackbox`:
+
+```bash
+mosquitto_sub -h localhost -t "#" -v
+```
+
+You should see messages flowing. If not, check mosquitto is running:
+```bash
+sudo systemctl status mosquitto
+```
+
+### 3. Check if mqttgateway is connected to the broker
+
+On `blackbox`:
+
+```bash
+docker logs the-heat-mapper_mqttgateway_1 --tail 50
+```
+
+Look for errors like:
+- `connection refused` - mqttgateway lost connection to mosquitto
+- `Invalid topic: ... odd number of levels` - these warnings are normal for JSON summary messages
+
+**Common fix**: If mqttgateway lost its MQTT connection, restart it:
+```bash
+docker restart the-heat-mapper_mqttgateway_1
+```
+
+### 4. Check if mqttgateway exposes metrics
+
+On `blackbox`:
+
+```bash
+curl -s http://localhost:9337/metrics | grep temperature
+```
+
+You should see metrics like:
+```
+temperature{job="tinybox",node="kitchen"} 21.1
+```
+
+### 5. Check if Prometheus is scraping the data
+
+On `blackbox`:
+
+```bash
+curl -s "http://localhost:9090/api/v1/query?query=temperature"
+```
+
+Or open http://blackbox:9090 in a browser and query `temperature`.
+
+### Service status overview
+
+Quick health check for all services on `blackbox`:
+
+```bash
+# Host service
+sudo systemctl status mosquitto
+
+# Docker containers
+docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "prometheus|grafana|mqttgateway"
+```
+
+On `tinybox`:
+
+```bash
+sudo systemctl status temperature.service
+```
+
+## Home Assistant Integration
+
+The Pluggit ventilation system's outdoor temperature sensor is pushed from Home Assistant to Prometheus via MQTT. An automation in Home Assistant publishes `sensor.outdoor_t1` to `prometheus/job/pluggit/node/outdoor/temperature`, which `mqttgateway` picks up and exposes to Prometheus.
+
+This allows the outdoor temperature to appear in Grafana alongside the Bluetooth temperature sensors.
