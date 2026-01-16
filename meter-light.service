@@ -1,0 +1,16 @@
+[Unit]
+Description=Electricity Meter SML Publisher (Light)
+After=network.target mosquitto.service docker.service
+Wants=mosquitto.service
+
+[Service]
+Type=simple
+User=pi
+ExecStart=/usr/bin/python3 /home/pi/the-heat-mapper/python/meter_publisher.py --name light --port /dev/ttyUSB0
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

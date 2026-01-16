@@ -260,3 +260,113 @@ sudo systemctl status temperature.service
 The Pluggit ventilation system's outdoor temperature sensor is pushed from Home Assistant to Prometheus via MQTT. An automation in Home Assistant publishes `sensor.outdoor_t1` to `prometheus/job/pluggit/node/outdoor/temperature`, which `mqttgateway` picks up and exposes to Prometheus.
 
 This allows the outdoor temperature to appear in Grafana alongside the Bluetooth temperature sensors.
+
+## Electricity Meters (SML)
+
+Two Iskra SBZ17 electricity meters are read via IR optical readers (Emlog USB) and published to MQTT.
+
+### Architecture
+
+```
+┌─────────────────────┐
+│  Iskra SBZ17        │  Electricity meters (Light + Heating)
+│  Stromzähler        │
+└─────────┬───────────┘
+          │ Infrared (SML protocol, 9600 baud)
+          ▼
+┌─────────────────────┐
+│  Emlog IR Lesekopf  │  USB optical reader
+│  (per meter)        │
+└─────────┬───────────┘
+          │ /dev/ttyUSB0, /dev/ttyUSB1
+          ▼
+┌─────────────────────────────────────────────────┐
+│  blackbox                                       │
+│  ┌──────────────────┐                           │
+│  │ meter_publisher  │  Python script (systemd)  │
+│  │ (per meter)      │  Reads SML, publishes MQTT│
+│  └────────┬─────────┘                           │
+│           │ MQTT publish                        │
+│           ▼                                     │
+│  ┌─────────────┐                                │
+│  │ mosquitto   │  → mqttgateway → prometheus    │
+│  └─────────────┘                                │
+└─────────────────────────────────────────────────┘
+```
+
+### Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| `meter-light.service` | /dev/ttyUSB0 | Light meter publisher |
+| `meter-heating.service` | /dev/ttyUSB1 | Heating meter publisher (when connected) |
+
+### MQTT Topics
+
+```
+prometheus/job/meter/node/light/total_kwh        # Zählerstand Licht (kWh)
+prometheus/job/meter/node/light/total_export_kwh # Einspeisung Licht (kWh)
+prometheus/job/meter/node/heating/total_kwh      # Zählerstand Heizung (kWh)
+prometheus/job/meter/node/heating/total_export_kwh
+home/meter/light                                  # JSON payload for HA
+home/meter/heating
+```
+
+### Prometheus Queries
+
+```promql
+# Current meter reading
+total_kwh{exported_job="meter", node="light"}
+
+# Daily consumption
+increase(total_kwh{exported_job="meter"}[1d])
+
+# Weekly consumption per meter
+increase(total_kwh{exported_job="meter", node="light"}[7d])
+```
+
+### Commands
+
+```bash
+# Check service status
+sudo systemctl status meter-light.service
+sudo systemctl status meter-heating.service
+
+# View logs
+sudo journalctl -u meter-light.service -f
+
+# Test meter reading manually
+python3 /home/pi/the-heat-mapper/python/meter_publisher.py --name test --port /dev/ttyUSB0
+
+# Check MQTT messages
+mosquitto_sub -h localhost -t "prometheus/job/meter/#" -v
+```
+
+### Adding the Heating Meter
+
+When the second IR reader is connected:
+
+```bash
+# 1. Find the port (usually /dev/ttyUSB1)
+ls -la /dev/ttyUSB*
+
+# 2. Install and start the service
+sudo cp /home/pi/the-heat-mapper/meter-heating.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable meter-heating.service
+sudo systemctl start meter-heating.service
+```
+
+### Grafana Dashboard
+
+- **URL:** http://blackbox:3000/d/electricity-meter/stromzahler
+- **File:** `grafana-dashboard-electricity.json`
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `python/meter_publisher.py` | SML reader + MQTT publisher script |
+| `meter-light.service` | Systemd service for light meter |
+| `meter-heating.service` | Systemd service for heating meter |
+| `grafana-dashboard-electricity.json` | Grafana dashboard |
