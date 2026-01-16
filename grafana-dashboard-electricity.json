@@ -72,7 +72,9 @@
       "id": 1,
       "options": {
         "legend": {
-          "calcs": ["last"],
+          "calcs": [
+            "last"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true
@@ -82,7 +84,7 @@
           "sort": "desc"
         }
       },
-      "title": "Zählerstand (kWh)",
+      "title": "Z\u00e4hlerstand (kWh)",
       "type": "timeseries",
       "targets": [
         {
@@ -133,7 +135,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["last"],
+          "calcs": [
+            "last"
+          ],
           "fields": "",
           "values": false
         },
@@ -189,7 +193,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["last"],
+          "calcs": [
+            "last"
+          ],
           "fields": "",
           "values": false
         },
@@ -204,134 +210,6 @@
             "uid": "Iwt-A3gRz"
           },
           "expr": "total_kwh{exported_job=\"meter\", node=\"heating\"}",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Iwt-A3gRz"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 500
-              },
-              {
-                "color": "red",
-                "value": 2000
-              }
-            ]
-          },
-          "unit": "watt"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 12,
-        "y": 8
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["last"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "title": "Licht - Aktuelle Leistung",
-      "type": "stat",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Iwt-A3gRz"
-          },
-          "expr": "power_w{exported_job=\"meter\", node=\"light\"}",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Iwt-A3gRz"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 500
-              },
-              {
-                "color": "red",
-                "value": 2000
-              }
-            ]
-          },
-          "unit": "watt"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 18,
-        "y": 8
-      },
-      "id": 5,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["last"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "title": "Heizung - Aktuelle Leistung",
-      "type": "stat",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Iwt-A3gRz"
-          },
-          "expr": "power_w{exported_job=\"meter\", node=\"heating\"}",
           "refId": "A"
         }
       ]
@@ -396,12 +274,14 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 8
       },
       "id": 6,
       "options": {
         "legend": {
-          "calcs": ["sum"],
+          "calcs": [
+            "sum"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true
@@ -428,7 +308,10 @@
   ],
   "refresh": "30s",
   "schemaVersion": 38,
-  "tags": ["electricity", "meter"],
+  "tags": [
+    "electricity",
+    "meter"
+  ],
   "templating": {
     "list": []
   },
@@ -438,7 +321,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Stromzähler",
+  "title": "Stromz\u00e4hler",
   "uid": "electricity-meter",
   "version": 1
 }
