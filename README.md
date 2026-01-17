@@ -367,6 +367,35 @@ sudo systemctl start meter-heating.service
 | File | Purpose |
 |------|---------|
 | `python/meter_publisher.py` | SML reader + MQTT publisher script |
+| `python/log_to_sheets.py` | Daily Google Sheets logger |
 | `meter-light.service` | Systemd service for light meter |
 | `meter-heating.service` | Systemd service for heating meter |
 | `grafana-dashboard-electricity.json` | Grafana dashboard |
+| `google-service-account-credentials.json` | Google API credentials (not in git) |
+
+## Google Sheets Logging
+
+Meter readings are logged daily to a Google Sheet for long-term tracking.
+
+- **Sheet:** https://docs.google.com/spreadsheets/d/11dOsZuRz0wvbhkFWGGZpq0Qjoq0gwsnVDfRx5Wk75sw
+- **Schedule:** Daily at 05:00 via cron
+- **Script:** `python/log_to_sheets.py`
+
+### Setup
+
+1. Create a Google Cloud service account at https://console.cloud.google.com/apis/credentials
+2. Enable the **Google Sheets API** in the project
+3. Download the JSON key and save as `google-service-account-credentials.json`
+4. Share the Google Sheet with the service account email (as Editor)
+
+### Manual Run
+
+```bash
+~/the-heat-mapper/venv/bin/python ~/the-heat-mapper/python/log_to_sheets.py
+```
+
+### Cron Job
+
+```
+0 5 * * * /home/pi/the-heat-mapper/venv/bin/python /home/pi/the-heat-mapper/python/log_to_sheets.py >> /home/pi/the-heat-mapper/sheets.log 2>&1
+```
