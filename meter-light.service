@@ -4,6 +4,7 @@ After=network.target mosquitto.service docker.service
 Wants=mosquitto.service
 
 [Service]
+Environment=PYTHONUNBUFFERED=1
 Type=simple
 User=pi
 ExecStart=/usr/bin/python3 /home/pi/the-heat-mapper/python/meter_publisher.py --name light --port /dev/ttyUSB0
