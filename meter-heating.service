@@ -4,10 +4,9 @@ After=network.target mosquitto.service docker.service
 Wants=mosquitto.service
 
 [Service]
+Environment=PYTHONUNBUFFERED=1
 Type=simple
 User=pi
-# WICHTIG: Port anpassen wenn der zweite Lesekopf angeschlossen wird!
-# Wird wahrscheinlich /dev/ttyUSB1 sein
 ExecStart=/usr/bin/python3 /home/pi/the-heat-mapper/python/meter_publisher.py --name heating --port /dev/ttyUSB1
 Restart=always
 RestartSec=10
