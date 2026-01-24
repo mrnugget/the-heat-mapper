@@ -18,17 +18,18 @@ from google.oauth2.service_account import Credentials
 
 SPREADSHEET_ID = "11dOsZuRz0wvbhkFWGGZpq0Qjoq0gwsnVDfRx5Wk75sw"
 CREDENTIALS_PATH = Path(__file__).parent.parent / "google-service-account-credentials.json"
-MQTT_TOPIC = "prometheus/job/meter/node/light/total_kwh"
+MQTT_TOPIC_LIGHT = "prometheus/job/meter/node/light/total_kwh"
+MQTT_TOPIC_HEATING = "prometheus/job/meter/node/heating/total_kwh"
 
-def get_meter_reading():
+def get_meter_reading(topic):
     """Get current meter reading via mosquitto_sub."""
     import subprocess
     result = subprocess.run(
-        ["mosquitto_sub", "-h", "localhost", "-t", MQTT_TOPIC, "-C", "1", "-W", "10"],
+        ["mosquitto_sub", "-h", "localhost", "-t", topic, "-C", "1", "-W", "10"],
         capture_output=True, text=True
     )
     if result.returncode != 0:
-        raise RuntimeError(f"Failed to read MQTT: {result.stderr}")
+        raise RuntimeError(f"Failed to read MQTT topic {topic}: {result.stderr}")
     return float(result.stdout.strip())
 
 def main():
@@ -46,13 +47,14 @@ def main():
 
     sheet = gc.open_by_key(SPREADSHEET_ID).sheet1
 
-    reading = get_meter_reading()
+    reading_light = get_meter_reading(MQTT_TOPIC_LIGHT)
+    reading_heating = get_meter_reading(MQTT_TOPIC_HEATING)
     today = datetime.now().strftime("%d.%m.%Y")
 
-    row = [today, int(reading), ""]  # Date, Licht, Heizung (empty for now)
+    row = [today, int(reading_light), int(reading_heating)]
     sheet.append_row(row, value_input_option="USER_ENTERED")
 
-    print(f"Logged: {today} - Licht: {int(reading)} kWh")
+    print(f"Logged: {today} - Licht: {int(reading_light)} kWh, Heizung: {int(reading_heating)} kWh")
 
 if __name__ == "__main__":
     main()
