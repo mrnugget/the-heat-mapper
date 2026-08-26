@@ -42,11 +42,12 @@ services:
       - '--collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'
 
   grafana:
+    container_name: the-heat-mapper_grafana_1
     restart: always
-    image: grafana/grafana
+    image: grafana/grafana:13.2.0
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=collabnix
-      - GF_INSTALL_PLUGINS=grafana-clock-panel,natel-discrete-panel,grafana-piechart-panel
+      - GF_PLUGINS_PREINSTALL_SYNC=grafana-clock-panel
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
