@@ -96,8 +96,12 @@ Two Iskra SBZ17 meters read via Emlog USB IR optical readers.
 
 | Meter | Service | Port | MQTT Topic |
 |-------|---------|------|------------|
-| Light (Licht) | meter-light.service | /dev/ttyUSB0 | prometheus/job/meter/node/light/* |
-| Heating (Heizung) | meter-heating.service | /dev/ttyUSB1 | prometheus/job/meter/node/heating/* |
+| Light (Licht) | meter-light.service | /dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_D20J9IXK-if00-port0 | prometheus/job/meter/node/light/* |
+| Heating (Heizung) | meter-heating.service | /dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DP05DBUI-if00-port0 | prometheus/job/meter/node/heating/* |
+
+Use these stable reader IDs in service units: `/dev/ttyUSB0` and `/dev/ttyUSB1`
+can swap after a reboot, mislabelling the readings. Stop the corresponding
+service before running a manual reader against its serial port.
 
 **Metrics**: `total_kwh`, `total_export_kwh`, `power_w` (power requires PIN unlock from utility)
 
@@ -106,8 +110,10 @@ Two Iskra SBZ17 meters read via Emlog USB IR optical readers.
 `python/meter_publisher.py` - Uses smllib to parse SML protocol, publishes every 5s.
 
 ```bash
-# Test manually
-python3 python/meter_publisher.py --name test --port /dev/ttyUSB0
+# Test the light reader manually (stop the test with Ctrl-C, then restart service)
+sudo systemctl stop meter-light.service
+python3 python/meter_publisher.py --name test --port /dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_D20J9IXK-if00-port0
+sudo systemctl start meter-light.service
 
 # View logs
 sudo journalctl -u meter-light.service -f
@@ -194,10 +200,13 @@ humidity{exported_job="tinybox", node="bathroom"}
 
 ### Meter not publishing
 
-1. **Check USB**: `ls -la /dev/ttyUSB*`
+1. **Check USB**: `ls -la /dev/serial/by-id/`
 2. **Check service**: `sudo systemctl status meter-light.service`
 3. **Check logs**: `sudo journalctl -u meter-light.service --since "10 min ago"`
-4. **Test manually**: `python3 python/meter_publisher.py --name test --port /dev/ttyUSB0`
+4. **Test manually**: Stop the corresponding service first and use its stable reader ID (see "Meter Publisher Script" above).
+
+For the 2026-09-18 swapped-readings incident, verified reference totals, and
+post-reboot checks, see README.md, "Recovery after the 2026-09-18 power cut".
 
 ### mqttgateway disconnected
 

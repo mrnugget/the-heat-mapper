@@ -1,8 +1,7 @@
-version: "3.9"
 services:
   prometheus:
     restart: always
-    image: prom/prometheus
+    image: prom/prometheus:v3.15.0
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -27,24 +26,25 @@ services:
 
   node-exporter:
     restart: always
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.12.1
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
+      - /run/udev/data:/run/udev/data:ro
       - /:/rootfs:ro
     command:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
       - '--path.rootfs=/rootfs'
-      - '--collector.filesystem.ignored-mount-points="^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)"'
-      - '--collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'
+      - '--collector.filesystem.mount-points-exclude=^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.filesystem.fs-types-exclude=^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$'
 
   grafana:
     container_name: the-heat-mapper_grafana_1
     restart: always
-    image: grafana/grafana:13.2.0
+    image: grafana/grafana:13.2.2
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=collabnix
       - GF_PLUGINS_PREINSTALL_SYNC=grafana-clock-panel
@@ -52,8 +52,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - grafana:/var/lib/grafana 
-    links:
-      - prometheus:prometheus
     ports:
       - "3000:3000"
     depends_on:
@@ -71,7 +69,7 @@ services:
       - "host.docker.internal:host-gateway" 
 
   unpoller:
-    image: golift/unifi-poller:latest
+    image: golift/unifi-poller:v4.0.1
     restart: unless-stopped
     ports:
       - '9130:9130'
@@ -82,6 +80,7 @@ services:
       - UP_UNIFI_DYNAMIC=false
       - UP_PROMETHEUS_HTTP_LISTEN=0.0.0.0:9130
       - UP_PROMETHEUS_NAMESPACE=unifipoller
+      - UP_PROMETHEUS_INTERVAL=60s
       - UP_UNIFI_CONTROLLER_0_SAVE_ALARMS=true
       - UP_UNIFI_CONTROLLER_0_SAVE_ANOMALIES=true
       - UP_UNIFI_CONTROLLER_0_SAVE_DPI=true

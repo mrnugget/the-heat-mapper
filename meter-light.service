@@ -7,7 +7,7 @@ Wants=mosquitto.service
 Environment=PYTHONUNBUFFERED=1
 Type=simple
 User=pi
-ExecStart=/usr/bin/python3 /home/pi/the-heat-mapper/python/meter_publisher.py --name light --port /dev/ttyUSB0
+ExecStart=/usr/bin/python3 /home/pi/the-heat-mapper/python/meter_publisher.py --name light --port /dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_D20J9IXK-if00-port0
 Restart=always
 RestartSec=10
 StandardOutput=journal

@@ -278,7 +278,7 @@ Two Iskra SBZ17 electricity meters are read via IR optical readers (Emlog USB) a
 │  Emlog IR Lesekopf  │  USB optical reader
 │  (per meter)        │
 └─────────┬───────────┘
-          │ /dev/ttyUSB0, /dev/ttyUSB1
+          │ /dev/serial/by-id/… (stable USB reader IDs)
           ▼
 ┌─────────────────────────────────────────────────┐
 │  blackbox                                       │
@@ -298,8 +298,43 @@ Two Iskra SBZ17 electricity meters are read via IR optical readers (Emlog USB) a
 
 | Service | Port | Description |
 |---------|------|-------------|
-| `meter-light.service` | /dev/ttyUSB0 | Light meter publisher |
-| `meter-heating.service` | /dev/ttyUSB1 | Heating meter publisher (when connected) |
+| `meter-light.service` | `/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_D20J9IXK-if00-port0` | Light (Licht) meter publisher |
+| `meter-heating.service` | `/dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_DP05DBUI-if00-port0` | Heating (Heizung) meter publisher |
+
+**Never assign meters by `/dev/ttyUSB0` or `/dev/ttyUSB1`: these numbers can swap
+after a reboot.** The service files above are the source of truth for reader
+assignments. The stable IDs identify the USB readers, not the meters: if a reader
+is replaced or physically moved to another meter, verify and update the mapping.
+
+### Recovery after the 2026-09-18 power cut
+
+After reboot, both publishers were running but their readings were swapped.
+The services were changed to the stable IDs above and installed in
+`/etc/systemd/system/`. Both publishers were stopped before starting them with
+the corrected assignments, so two processes would not read the same port.
+
+At 19:20 CEST, live MQTT messages, Prometheus, and Home Assistant confirmed:
+
+- Light: **30,034 kWh**, reader **D20J9IXK**.
+- Heating: **21,527 kWh**, reader **DP05DBUI**.
+
+These are historical reference readings, not fixed expected values. Incorrectly
+labelled samples before the fix remain in history; consumption graphs using
+`increase()` may show spikes while their time range includes the swap.
+
+To verify after another reboot:
+
+```bash
+ls -l /dev/serial/by-id/
+systemctl show meter-light.service meter-heating.service -p Id -p ExecStart -p ActiveState
+# -R excludes retained messages: verify newly published readings.
+timeout 30 mosquitto_sub -h localhost -t 'prometheus/job/meter/node/+/total_kwh' -R -v -C 4
+curl -fsSG --data-urlencode 'query=total_kwh{exported_job="meter",node=~"light|heating"}' \
+  http://localhost:9090/api/v1/query
+```
+
+Compare each labelled reading with its physical meter or known pre-reboot reading;
+service uptime and fresh timestamps alone do not prove the assignments are right.
 
 ### MQTT Topics
 
@@ -335,26 +370,32 @@ sudo systemctl status meter-heating.service
 # View logs
 sudo journalctl -u meter-light.service -f
 
-# Test meter reading manually
-python3 /home/pi/the-heat-mapper/python/meter_publisher.py --name test --port /dev/ttyUSB0
+# Test the light reader manually; never open a port already used by its service.
+sudo systemctl stop meter-light.service
+python3 /home/pi/the-heat-mapper/python/meter_publisher.py --name test --port /dev/serial/by-id/usb-FTDI_FT230X_Basic_UART_D20J9IXK-if00-port0
+# After stopping the manual test with Ctrl-C:
+sudo systemctl start meter-light.service
 
 # Check MQTT messages
 mosquitto_sub -h localhost -t "prometheus/job/meter/#" -v
 ```
 
-### Adding the Heating Meter
+### Installing or updating the meter services
 
-When the second IR reader is connected:
+Both readers are connected. If replacing one, identify its new stable ID and
+update the corresponding service file and mapping above before installing.
 
 ```bash
-# 1. Find the port (usually /dev/ttyUSB1)
-ls -la /dev/ttyUSB*
+# Inspect stable IDs, not USB enumeration order.
+ls -l /dev/serial/by-id/
 
-# 2. Install and start the service
-sudo cp /home/pi/the-heat-mapper/meter-heating.service /etc/systemd/system/
+# Install both checked-in units, then reload systemd.
+sudo cp /home/pi/the-heat-mapper/meter-{light,heating}.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable meter-heating.service
-sudo systemctl start meter-heating.service
+sudo systemctl enable meter-light.service meter-heating.service
+# Stop BOTH before starting either when changing assignments.
+sudo systemctl stop meter-light.service meter-heating.service
+sudo systemctl start meter-light.service meter-heating.service
 ```
 
 ### Grafana Dashboard
