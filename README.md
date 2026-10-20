@@ -214,6 +214,12 @@ Look for errors like:
 docker restart the-heat-mapper_mqttgateway_1
 ```
 
+`mqttgateway-watchdog.sh` automates this for the meters. Install it in the
+crontab on `blackbox`:
+```
+*/5 * * * * /home/pi/the-heat-mapper/mqttgateway-watchdog.sh >> /home/pi/logs/mqttgateway-watchdog.log 2>&1
+```
+
 ### 4. Check if mqttgateway exposes metrics
 
 On `blackbox`:

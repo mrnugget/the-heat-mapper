@@ -53,6 +53,7 @@ mosquitto_sub -h localhost -t "prometheus/job/meter/#" -v -C 5
 | `python/log_to_sheets.py` | Daily Google Sheets logger for meter readings |
 | `meter-light.service` | Systemd unit for light meter (installed to /etc/systemd/system/) |
 | `meter-heating.service` | Systemd unit for heating meter |
+| `mqttgateway-watchdog.sh` | Cron watchdog: restarts mqttgateway when meter values freeze |
 | `temperature.service` | Systemd unit for tinybox (not used on blackbox) |
 | `grafana-dashboard-*.json` | Exported Grafana dashboards |
 | `google-service-account-credentials.json` | Google API creds (not in git) |
@@ -215,6 +216,14 @@ The mqttgateway container connects to mosquitto via `host.docker.internal:1883`.
 ```bash
 docker restart the-heat-mapper_mqttgateway_1
 ```
+
+`mqttgateway-watchdog.sh` does this automatically (cron `*/5 * * * *`, log
+`~/logs/mqttgateway-watchdog.log`). It checks each meter's
+`mqtt_total_kwh_last_pushed_timestamp` separately. A stale meter only triggers a
+restart if the broker still receives fresh (non-retained) messages for it;
+otherwise it logs a meter/publisher problem. Tests:
+`MAX_AGE=-1 ./mqttgateway-watchdog.sh` (restarts) and
+`METER_NODES=bogus ./mqttgateway-watchdog.sh` (logs only).
 
 ## tinybox (Pi Zero) Reference
 
