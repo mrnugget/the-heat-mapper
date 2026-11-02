@@ -446,3 +446,10 @@ Meter readings are logged daily to a Google Sheet for long-term tracking.
 ```
 0 5 * * * /home/pi/the-heat-mapper/venv/bin/python /home/pi/the-heat-mapper/python/log_to_sheets.py >> /home/pi/the-heat-mapper/sheets.log 2>&1
 ```
+
+## Recovery backups and outage monitoring
+
+See [BACKUP-RECOVERY.md](BACKUP-RECOVERY.md) for restore instructions, daily
+NAS backups, retention, diagnostics, and DSM monitoring setup. Pi backup and
+diagnostic cron jobs are installed; independent NAS checks run every minute.
+Email configuration and delivery still need verification.
