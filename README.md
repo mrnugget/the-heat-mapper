@@ -57,6 +57,24 @@ On this machine:
 - `mqttgateway`
 - `unpoller`
 
+### Shinybox host monitoring
+
+The `node-exporter` job also scrapes `shinybox.dingo-cobra.ts.net:9100` every
+five seconds over Tailscale. Shinybox's Debian exporter is enabled and bound
+only to `100.94.150.120:9100`; its firewall permits remote scrapes only from
+blackbox's Tailscale IP `100.96.245.4`. Installation, firewall and service
+recovery details are in shinybox's `~/shinybox-monitoring/README.md`.
+
+Grafana's Node Exporter dashboard (`v1aOo2gRk`) discovers this instance through
+`label_values(node_uname_info{job="$job"}, instance)`; no dashboard change is
+needed. After scrape config changes, validate with
+`docker exec the-heat-mapper-prometheus-1 promtool check config /etc/prometheus/prometheus.yml`
+and reload without restarting via
+`docker kill --signal=HUP the-heat-mapper-prometheus-1`. Verify `up=1` and the
+host-selector lookup through Grafana's Prometheus datasource, not just a direct
+exporter request. Added and verified on 2026-11-09; tinybox's existing scrape
+timeout was left unchanged.
+
 ### Run
 
 1. Create `.env` file and fill with content of 1Password: https://start.1password.com/open/i?a=LVMZ2X55UFETRCHMOI7BONYOIM&v=ze3dzps36q2jt7zlvdduwhv3pi&i=7jyrhe5hiqglsbupu3btyeqgau&h=team-ball.1password.com
