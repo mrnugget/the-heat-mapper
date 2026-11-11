@@ -57,7 +57,15 @@ mosquitto_sub -h localhost -t "prometheus/job/meter/#" -v -C 5
 | `temperature.service` | Systemd unit for tinybox (not used on blackbox) |
 | `grafana-dashboard-*.json` | Exported Grafana dashboards |
 | `google-service-account-credentials.json` | Google API creds (not in git) |
-| `.env` | UniFi poller credentials (not in git) |
+| `.env` | Legacy Cloud Key credentials (not in git; no longer used by Poller) |
+
+UniFi migrated to the Cloud Gateway Max at `https://192.168.1.1` on 2026-11-11.
+Poller and diagnostic API requests use the private local API key in
+`/home/pi/.config/unifi/network-api-key` (mode 600), mounted read-only into Poller.
+Never print the key; its permissions are not confirmed read-only, and API access
+does not authorize configuration changes. See README.md, "UniFi monitoring and
+API access", for endpoints and verification. Keep the old USG and Cloud Key
+disconnected and unchanged for rollback.
 
 ## Bluetooth Temperature Sensors
 

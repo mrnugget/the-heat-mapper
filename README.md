@@ -57,6 +57,31 @@ On this machine:
 - `mqttgateway`
 - `unpoller`
 
+### UniFi monitoring and API access
+
+Since 2026-11-11, UniFi runs on the Cloud Gateway Max at
+`https://192.168.1.1` (UniFi OS 6.0.17, Network 11.0.99 at migration).
+The old USG and Cloud Key are disconnected and retained for rollback.
+
+Poller v5.6.3 authenticates with a local API key stored outside Git at
+`/home/pi/.config/unifi/network-api-key` (mode 600). Compose mounts it read-only
+at `/run/secrets/unifi-api-key`; `UP_UNIFI_CONTROLLER_0_API_KEY` uses a
+`file://` reference, not the secret value. The old `.env` Cloud Key login is no
+longer used by Poller. Preserve the key privately when backing up this host.
+
+For local diagnostic API requests, read that file and send its value in the
+`X-API-Key` header. Device and client inventories are available at
+`/proxy/network/api/s/default/stat/device` and
+`/proxy/network/api/s/default/stat/sta`; the documented integration API starts
+at `/proxy/network/integration/v1/sites`. Do not print the key or assume it is
+read-only: its effective permissions have not been established. Diagnostic
+access does not authorize network configuration changes.
+
+After changing the key or endpoint, recreate only Poller with
+`docker compose up -d --no-deps unpoller`. Verify
+`unifipoller_controller_up{source="https://192.168.1.1"}` is 1 through Grafana's
+Prometheus data source (`Iwt-A3gRz`), not just the exporter's HTTP health.
+
 ### Shinybox host monitoring
 
 The `node-exporter` job also scrapes `shinybox.dingo-cobra.ts.net:9100` every

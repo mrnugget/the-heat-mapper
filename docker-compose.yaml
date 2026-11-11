@@ -74,6 +74,8 @@ services:
     ports:
       - '9130:9130'
     container_name: unpoller
+    volumes:
+      - /home/pi/.config/unifi/network-api-key:/run/secrets/unifi-api-key:ro
     environment:
       - UP_INFLUXDB_DISABLE=true
       - UP_POLLER_DEBUG=false
@@ -87,9 +89,8 @@ services:
       - UP_UNIFI_CONTROLLER_0_SAVE_EVENTS=true
       - UP_UNIFI_CONTROLLER_0_SAVE_IDS=true
       - UP_UNIFI_CONTROLLER_0_SAVE_SITES=true
-      - UP_UNIFI_CONTROLLER_0_URL=${UNIFI_URL}
-      - UP_UNIFI_CONTROLLER_0_USER=${UNIFI_USER}
-      - UP_UNIFI_CONTROLLER_0_PASS=${UNIFI_PASS}
+      - UP_UNIFI_CONTROLLER_0_URL=https://192.168.1.1
+      - UP_UNIFI_CONTROLLER_0_API_KEY=file:///run/secrets/unifi-api-key
 
 volumes:
   grafana:
